@@ -8,14 +8,13 @@ from openai import OpenAI
 load_dotenv(override=True)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def generate_full_dataset(num_examples=10):
+def generate_full_dataset(num_examples=8):
     print(f"Starting generation of {num_examples} secure/insecure code pairs...")
     dataset = []
     
     # 2. Rotate through different attack types
     vuln_types = [
         "SQL Injection", 
-        "Cross-Site Scripting (XSS)", 
         "Command Injection", 
         "Path Traversal",
         "Hardcoded Credentials"
@@ -65,4 +64,4 @@ def generate_full_dataset(num_examples=10):
 if __name__ == "__main__":
     # Keeping this at 10 for a quick verification run. 
     # Change this to 50 or 100 later when you want to build the massive dataset!
-    generate_full_dataset(10)
+    generate_full_dataset(8)
