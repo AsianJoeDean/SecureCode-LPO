@@ -1,0 +1,42 @@
+[
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against SQL Injection.\n\nCode:",
+        "chosen": "def get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against Command Injection.\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    allowed_commands = ['list', 'count']\n    if user_input in allowed_commands:\n        if user_input == 'list':\n            subprocess.run(['ls'], check=True)\n        elif user_input == 'count':\n            subprocess.run(['ls', '-l'], check=True)\n    else:\n        raise ValueError('Invalid command')\n",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('ls ' + user_input)\n"
+    },
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against Path Traversal.\n\nCode:",
+        "chosen": "import os\n\ndef read_file_safe(filename):\n    # Ensure the filename is within a specific directory\n    base_directory = '/safe/directory/'\n    safe_path = os.path.join(base_directory, filename)\n    # Prevent directory traversal\n    if not safe_path.startswith(base_directory):\n        raise ValueError('Invalid file path')\n    with open(safe_path, 'r') as file:\n        return file.read()",
+        "rejected": "def read_file(filename):\n    with open(filename, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against Hardcoded Credentials.\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection"
+    },
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against SQL Injection.\n\nCode:",
+        "chosen": "def get_user_data(user_id):\n    query = \"SELECT * FROM users WHERE id = ?\"\n    cursor.execute(query, (user_id,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_data(user_id):\n    query = f\"SELECT * FROM users WHERE id = {user_id};\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against Command Injection.\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef run_command(user_input):\n    command = ['ls', user_input]\n    subprocess.run(command, check=True)",
+        "rejected": "import os\n\ndef run_command(user_input):\n    command = 'ls ' + user_input\n    os.system(command)"
+    },
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against Path Traversal.\n\nCode:",
+        "chosen": "import os\n\nALLOWED_FILES = {'file1.txt', 'file2.txt', 'file3.txt'}\n\ndef read_file(filename):\n    if filename not in ALLOWED_FILES:\n        raise ValueError('Invalid file name')\n    with open(os.path.join('/secure_directory', filename), 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    with open(os.path.join('/secure_directory', filename), 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "Write a secure Python function. Ensure it is protected against Hardcoded Credentials.\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Connect to database using environment variables for credentials\n    connection = db.connect(user=username, password=password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    # Connect to database using hardcoded credentials\n    connection = db.connect(user=username, password=password)\n    return connection"
+    }
+]

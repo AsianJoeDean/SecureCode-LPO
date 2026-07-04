@@ -1,13 +1,6 @@
-# Ignore downloaded AI models
-models/
-
-# Ignore Python cache files
+﻿venv/
+secure_codellama/
+secure_codellama_merged/
+offload/
 __pycache__/
-*.pyc
-
-# Ignore environment variables (like your OpenAI API keys)
 .env
-
-# Ignore virtual environments
-venv/
-env/

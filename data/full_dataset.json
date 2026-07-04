@@ -1,0 +1,50 @@
+[
+    {
+        "bad_code": "def get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    cursor.execute(query)\n    return cursor.fetchall()",
+        "good_code": "def get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "explanation": "The original function is vulnerable to SQL Injection because it constructs the SQL query by concatenating user input directly into the query string. An attacker can manipulate the 'username' input to inject malicious SQL code. The patched version uses parameterized queries, which properly handle user input and prevent SQL injection attacks.",
+        "vulnerability_type": "SQL Injection"
+    },
+    {
+        "bad_code": "import os\n\ndef execute_command(user_input):\n    os.system('ls ' + user_input)\n",
+        "good_code": "import subprocess\n\n\ndef execute_command(user_input):\n    allowed_commands = ['list', 'count']\n    if user_input in allowed_commands:\n        if user_input == 'list':\n            subprocess.run(['ls'], check=True)\n        elif user_input == 'count':\n            subprocess.run(['ls', '-l'], check=True)\n    else:\n        raise ValueError('Invalid command')\n",
+        "explanation": "The original function is vulnerable to command injection because it directly concatenates user input into a command string that is executed by the os.system function. An attacker could input malicious commands that would be executed by the system. In contrast, the patched function restricts command execution to a predefined list of safe commands, eliminating the risk of executing arbitrary commands.",
+        "vulnerability_type": "Command Injection"
+    },
+    {
+        "bad_code": "def read_file(filename):\n    with open(filename, 'r') as file:\n        return file.read()",
+        "good_code": "import os\n\ndef read_file_safe(filename):\n    # Ensure the filename is within a specific directory\n    base_directory = '/safe/directory/'\n    safe_path = os.path.join(base_directory, filename)\n    # Prevent directory traversal\n    if not safe_path.startswith(base_directory):\n        raise ValueError('Invalid file path')\n    with open(safe_path, 'r') as file:\n        return file.read()",
+        "explanation": "The original function is vulnerable to a Path Traversal attack because it allows user input to dictate the filename without any validation, enabling attackers to access sensitive files outside the intended directory by using patterns like '../'. The secure version limits file access to a specific directory and checks the sanitized path.",
+        "vulnerability_type": "Path Traversal"
+    },
+    {
+        "bad_code": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection",
+        "good_code": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "explanation": "The original function is vulnerable because it contains hardcoded credentials (username and password) within the source code, making them accessible to anyone who can read the code. This practice exposes the application to risks such as credential leakage and unauthorized access. The patched version uses environment variables to securely handle sensitive information.",
+        "vulnerability_type": "Hardcoded Credentials"
+    },
+    {
+        "bad_code": "def get_user_data(user_id):\n    query = f\"SELECT * FROM users WHERE id = {user_id};\"\n    cursor.execute(query)\n    return cursor.fetchall()",
+        "good_code": "def get_user_data(user_id):\n    query = \"SELECT * FROM users WHERE id = ?\"\n    cursor.execute(query, (user_id,))\n    return cursor.fetchall()",
+        "explanation": "The original function is vulnerable to SQL Injection because it directly interpolates the user-supplied input (user_id) into the SQL query string without any validation or sanitization. An attacker could exploit this by providing a specially crafted input that alters the intended query, potentially leading to unauthorized data access or manipulation. The patched version uses parameterized queries, which safely handle user input, preventing such vulnerabilities.",
+        "vulnerability_type": "SQL Injection"
+    },
+    {
+        "bad_code": "import os\n\ndef run_command(user_input):\n    command = 'ls ' + user_input\n    os.system(command)",
+        "good_code": "import subprocess\n\n\ndef run_command(user_input):\n    command = ['ls', user_input]\n    subprocess.run(command, check=True)",
+        "explanation": "The original function is vulnerable to command injection because it directly concatenates user input into the command string passed to os.system, allowing an attacker to execute arbitrary commands. The patched version uses a list to define the command, where user input is passed as a separate argument, thereby preventing unintended command execution.",
+        "vulnerability_type": "Command Injection"
+    },
+    {
+        "bad_code": "import os\n\ndef read_file(filename):\n    with open(os.path.join('/secure_directory', filename), 'r') as file:\n        return file.read()",
+        "good_code": "import os\n\nALLOWED_FILES = {'file1.txt', 'file2.txt', 'file3.txt'}\n\ndef read_file(filename):\n    if filename not in ALLOWED_FILES:\n        raise ValueError('Invalid file name')\n    with open(os.path.join('/secure_directory', filename), 'r') as file:\n        return file.read()",
+        "explanation": "The original function is vulnerable to Path Traversal attacks because it allows an attacker to manipulate the 'filename' parameter to access files outside of the intended directory (e.g., by using '../' sequences). In contrast, the patched version restricts file access to predefined, allowed file names, effectively mitigating this vulnerability.",
+        "vulnerability_type": "Path Traversal"
+    },
+    {
+        "bad_code": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    # Connect to database using hardcoded credentials\n    connection = db.connect(user=username, password=password)\n    return connection",
+        "good_code": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Connect to database using environment variables for credentials\n    connection = db.connect(user=username, password=password)\n    return connection",
+        "explanation": "The original function is vulnerable because it uses hardcoded credentials, which can be easily extracted by an attacker or anyone with access to the source code. This exposes sensitive information and increases the risk of unauthorized access. The secure version mitigates this risk by retrieving credentials from environment variables, thereby keeping sensitive information out of the source code.",
+        "vulnerability_type": "Hardcoded Credentials"
+    }
+]
