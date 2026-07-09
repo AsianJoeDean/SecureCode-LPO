@@ -62,6 +62,5 @@ def generate_full_dataset(num_examples=8):
     print(f"Done! Saved {len(dataset)} examples to {file_path}")
 
 if __name__ == "__main__":
-    # Keeping this at 10 for a quick verification run. 
-    # Change this to 50 or 100 later when you want to build the massive dataset!
-    generate_full_dataset(8)
+    # Bumping the volume up to 100 to build the production-ready dataset!
+    generate_full_dataset(100)

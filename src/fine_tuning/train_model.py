@@ -22,23 +22,28 @@ def train_secure_model():
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     tokenizer.pad_token = tokenizer.eos_token
 
+    # 4. Bulletproof Model Loading
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         quantization_config=quantization_config,
-        device_map="auto" # Automatically handles your GPU memory
+        device_map={"": 0},               # Force directly to the primary GPU
+        torch_dtype=torch.float16         # Pre-cast to 16-bit to stop .to() crashes
     )
+    
+    # Disable caching to prevent gradient checkpointing crashes during training
+    model.config.use_cache = False
 
-    # 4. Set the Training Rules (The "Red Pen")
+    # 5. Set the Training Rules (The "Red Pen")
     training_args = DPOConfig(
         output_dir="./secure_codellama",
         per_device_train_batch_size=1, 
-        max_steps=50,
+        num_train_epochs=1,
         learning_rate=2e-4,
         fp16=True,   # Tell the GPU to use standard 16-bit math
         bf16=False   # Explicitly disable the unsupported Brain Float math
     )
 
-    # 5. Define the trainable adapters (The "Sticky Notes")
+    # 6. Define the trainable adapters (The "Sticky Notes")
     peft_config = LoraConfig(
         r=8,
         lora_alpha=16,
@@ -47,7 +52,7 @@ def train_secure_model():
         target_modules=["q_proj", "v_proj"] # Targets the attention layers in LLaMA
     )
 
-    # 6. Initialize the Trainer
+    # 7. Initialize the Trainer
     trainer = DPOTrainer(
         model=model,
         args=training_args,
@@ -56,11 +61,11 @@ def train_secure_model():
         peft_config=peft_config,    # Attached the LoRA configuration
     )
 
-    # 7. Start the Training
+    # 8. Start the Training
     print("Starting Localized Preference Optimization...")
     trainer.train()
 
-    # 8. Save the Adapters to the hard drive!
+    # 9. Save the Adapters to the hard drive!
     trainer.save_model("./secure_codellama")
 
 if __name__ == "__main__":

@@ -1,6 +1,11 @@
-﻿venv/
+﻿# Python Environment
+venv/
+__pycache__/
+*.pyc
+
+# Massive AI Model Files (DO NOT PUSH)
 secure_codellama/
 secure_codellama_merged/
-offload/
-__pycache__/
-.env
+
+# System Files
+.DS_Store

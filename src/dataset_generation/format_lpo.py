@@ -20,8 +20,8 @@ def format_for_lpo():
     for entry in dataset:
         vuln_type = entry.get("vulnerability_type", "vulnerability")
         
-        # Build a realistic instruction prompt for the AI to read during training
-        prompt = f"Write a secure Python function. Ensure it is protected against {vuln_type}.\n\nCode:"
+        # The critical fix: wrapping the training prompt in instruction tags
+        prompt = f"[INST] Write a secure Python function. Ensure it is protected against {vuln_type}. [/INST]\n\nCode:"
         
         # Map your generated code to the exact keys Hugging Face requires
         lpo_entry = {

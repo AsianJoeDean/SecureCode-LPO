@@ -1,60 +1,9 @@
-Write a Python function to connect to a sqlite database and execute a query based on a user's ID.
-
-
+[PYTHON]
 import sqlite3
-def query_by_id(db_file, id):
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
+
+def get_user_data(user_id):
+    connection = sqlite3.connect('database.sqlite')
+    cursor = connection.cursor()
     query = "SELECT * FROM users WHERE id = ?"
-    cursor.execute(query, (id,))
-    result = cursor.fetchall()
-    conn.close()
-    return result
-
-
-print(query_by_id("users.db", 1))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    cursor.execute(query, (user_id,))
+    return cursor.fetchall()

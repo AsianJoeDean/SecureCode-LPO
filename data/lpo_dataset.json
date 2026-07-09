@@ -1,42 +1,502 @@
 [
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against SQL Injection.\n\nCode:",
-        "chosen": "def get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
-        "rejected": "def get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    result = execute_sql(query, (username,))\n    return result",
+        "rejected": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    result = execute_sql(query)\n    return result"
     },
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against Command Injection.\n\nCode:",
-        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    allowed_commands = ['list', 'count']\n    if user_input in allowed_commands:\n        if user_input == 'list':\n            subprocess.run(['ls'], check=True)\n        elif user_input == 'count':\n            subprocess.run(['ls', '-l'], check=True)\n    else:\n        raise ValueError('Invalid command')\n",
-        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('ls ' + user_input)\n"
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(user_input):\n    sanitized_input = user_input.replace(';', '').replace('&', '').replace('|', '')  # Basic sanitization\n    command = ['ls', sanitized_input]\n    subprocess.run(command, check=True)\n",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    command = 'ls ' + user_input\n    os.system(command)\n"
     },
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against Path Traversal.\n\nCode:",
-        "chosen": "import os\n\ndef read_file_safe(filename):\n    # Ensure the filename is within a specific directory\n    base_directory = '/safe/directory/'\n    safe_path = os.path.join(base_directory, filename)\n    # Prevent directory traversal\n    if not safe_path.startswith(base_directory):\n        raise ValueError('Invalid file path')\n    with open(safe_path, 'r') as file:\n        return file.read()",
-        "rejected": "def read_file(filename):\n    with open(filename, 'r') as file:\n        return file.read()"
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nallowed_files = {'file1.txt', 'file2.txt', 'file3.txt'}\n\ndef read_file(filename):\n    if filename not in allowed_files:\n        raise ValueError('Invalid file name.')\n    file_path = os.path.join('/var/www/files', filename)\n    with open(file_path, 'r') as f:\n        return f.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/var/www/files', filename)\n    with open(file_path, 'r') as f:\n        return f.read()"
     },
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against Hardcoded Credentials.\n\nCode:",
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USER')\n    password = os.getenv('DB_PASS')\n    db = connect(database='mydb', user=username, password=password)\n    return db",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    db = connect(database='mydb', user=username, password=password)\n    return db"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    cursor.execute(query, (username,))  # Safe from SQL Injection\n    return cursor.fetchall()",
+        "rejected": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"  # Vulnerable to SQL Injection\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(user_input):\n    command = ['ls', user_input]\n    subprocess.run(command)\n",
+        "rejected": "import subprocess\n\ndef execute_command(user_input):\n    command = 'ls ' + user_input\n    subprocess.run(command, shell=True)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(filename):\n    base_directory = '/var/www/uploads/'\n    safe_filename = os.path.basename(filename)  # Ensures only the base file name is used\n    file_path = os.path.join(base_directory, safe_filename)\n    if not file_path.startswith(base_directory):  # Validates that the file is within the allowed directory\n        raise ValueError('Invalid file path')\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    base_directory = '/var/www/uploads/'\n    file_path = os.path.join(base_directory, filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
         "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
         "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection"
     },
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against SQL Injection.\n\nCode:",
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    result = execute_query(query, (username,))\n    return result",
+        "rejected": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    result = execute_query(query)\n    return result"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    sanitized_input = user_input.replace(';', '').replace('&', '').replace('|', '')\n    subprocess.run(['echo', sanitized_input], check=True)",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('echo ' + user_input)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSAFE_BASE_DIR = '/secure/directory'\n\n\ndef read_file(filename):\n    # Normalize the filename and ensure it doesn't escape the base directory\n    safe_filename = os.path.basename(filename)\n    file_path = os.path.join(SAFE_BASE_DIR, safe_filename)\n    if os.path.commonpath([file_path, SAFE_BASE_DIR]) != SAFE_BASE_DIR:\n        raise ValueError('Invalid file path')\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/secure/directory', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'P@ssw0rd123!'\n    connection = create_connection(username, password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "import sqlite3\n\ndef get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    return cursor.fetchone()",
+        "rejected": "def get_user_by_username(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"\n    cursor.execute(query)\n    return cursor.fetchone()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef secure_function(user_input):\n    subprocess.run(['ping', user_input], check=True)\n",
+        "rejected": "import os\n\ndef vulnerable_function(user_input):\n    os.system('ping ' + user_input)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nALLOWED_FILES = {'file1.txt', 'file2.txt', 'file3.txt'}\n\ndef read_file(filename):\n    if filename not in ALLOWED_FILES:\n        raise ValueError('Invalid file name')\n    with open(os.path.join('files', filename), 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    with open(os.path.join('files', filename), 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Code to connect to database using the environment variables\n    connect(username, password)",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    # Code to connect to database using the hardcoded credentials\n    connect(username, password)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_by_id(user_id):\n    query = \"SELECT * FROM users WHERE id = %s\"\n    cursor.execute(query, (user_id,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_by_id(user_id):\n    query = f\"SELECT * FROM users WHERE id = {user_id};\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(command):\n    # Use the shell=False to avoid command injection\n    subprocess.run(command.split(), check=True)\n\n# Example usage:\n# execute_command(['ls'])",
+        "rejected": "import os\n\ndef execute_command(command):\n    os.system(command)\n\n# Example usage that demonstrates the vulnerability:\n# execute_command(\"ls; rm -rf /\")"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nALLOWED_FILES = {'file1.txt', 'file2.txt', 'file3.txt'}\n\ndef read_file(file_name):\n    if file_name not in ALLOWED_FILES:\n        raise ValueError('Invalid file name')\n    base_dir = '/var/www/files/'\n    file_path = os.path.join(base_dir, file_name)\n    with open(file_path, 'r') as f:\n        return f.read()",
+        "rejected": "import os\n\ndef read_file(file_name):\n    base_dir = '/var/www/files/'\n    file_path = os.path.join(base_dir, file_name)\n    with open(file_path, 'r') as f:\n        return f.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Connect to the database using environment variables\n    database = Database.connect(username, password)\n    return database",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    # Connect to the database using hardcoded credentials\n    database = Database.connect(username, password)\n    return database"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "import sqlite3\n\ndef get_user_data(username):\n    conn = sqlite3.connect('database.db')\n    cursor = conn.cursor()\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_data(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}';\"\n    return execute_query(query)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    command = ['ls', user_input]\n    subprocess.run(command, check=True)",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    command = 'ls ' + user_input\n    os.system(command)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\n\ndef read_file(file_name):\n    safe_file_name = os.path.basename(file_name)\n    file_path = os.path.join('/secure/directory', safe_file_name)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(file_name):\n    file_path = os.path.join('/secure/directory', file_name)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    db_username = os.getenv('DB_USERNAME')\n    db_password = os.getenv('DB_PASSWORD')\n    # Code to connect to the database using environment variables\n    connect(db_username, db_password)",
+        "rejected": "def connect_to_database():\n    db_username = 'admin'\n    db_password = 'password123'\n    # Code to connect to the database using hardcoded credentials\n    connect(db_username, db_password)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_details(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    db.execute(query, (username,))",
+        "rejected": "def get_user_details(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    db.execute(query)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    safe_command = ['ls', user_input]\n    subprocess.run(safe_command, check=True)",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('ls ' + user_input)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(filename):\n    safe_filename = os.path.basename(filename)\n    file_path = os.path.join('/secure_directory', safe_filename)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/secure_directory', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Code to connect to the database using environment variables\n    print(f\"Connecting to database with username: {username} and password: {password}\")",
+        "rejected": "def connect_to_database():\n    username = \"admin\"\n    password = \"password123\"\n    # Code to connect to the database using hardcoded credentials\n    print(f\"Connecting to database with username: {username} and password: {password}\")"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_by_username(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_by_username(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"  \n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(command):\n    subprocess.run(command, shell=False, check=True)\n\n# Usage example\nexecute_command(['ls'])",
+        "rejected": "import os\n\ndef execute_command(command):\n    os.system(command)\n\n# Usage example\nexecute_command('ls; rm -rf /')"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(filename):\n    # Secure version that sanitizes the input\n    safe_filename = os.path.basename(filename)\n    file_path = os.path.join('/secure_dir/', safe_filename)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    # Vulnerable to Path Traversal\n    file_path = os.path.join('/secure_dir/', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Assuming some database connection logic here\n    print(f'Connecting to database with username: {username}')",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    # Assuming some database connection logic here\n    print(f'Connecting to database with username: {username} and password: {password}')"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_data(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}';\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(command):\n    subprocess.run(command, shell=False, check=True)\n\n# Example usage\nexecute_command(['ls'])",
+        "rejected": "import os\n\ndef execute_command(command):\n    os.system(command)\n\n# Example usage\nexecute_command('ls')"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSAFE_BASE_PATH = '/secure_directory/'\n\ndef read_file(filename):\n    # Sanitize the filename to prevent traversal\n    safe_filename = os.path.basename(filename)\n    file_path = os.path.join(SAFE_BASE_PATH, safe_filename)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/secure_directory/', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = db.connect(user=username, password=password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = db.connect(user=username, password=password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
         "chosen": "def get_user_data(user_id):\n    query = \"SELECT * FROM users WHERE id = ?\"\n    cursor.execute(query, (user_id,))\n    return cursor.fetchall()",
         "rejected": "def get_user_data(user_id):\n    query = f\"SELECT * FROM users WHERE id = {user_id};\"\n    cursor.execute(query)\n    return cursor.fetchall()"
     },
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against Command Injection.\n\nCode:",
-        "chosen": "import subprocess\n\n\ndef run_command(user_input):\n    command = ['ls', user_input]\n    subprocess.run(command, check=True)",
-        "rejected": "import os\n\ndef run_command(user_input):\n    command = 'ls ' + user_input\n    os.system(command)"
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef run_command(command):\n    # Use only whitelisted commands and arguments\n    allowed_commands = {'ls', 'pwd'}\n    if command.split()[0] in allowed_commands:\n        subprocess.run(command.split())\n    else:\n        raise ValueError('Command not allowed')\n\n# Example usage\nrun_command(\"ls\")",
+        "rejected": "import os\n\ndef run_command(command):\n    os.system(command)\n\n# Example usage\nrun_command(\"ls; rm -rf /\")"
     },
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against Path Traversal.\n\nCode:",
-        "chosen": "import os\n\nALLOWED_FILES = {'file1.txt', 'file2.txt', 'file3.txt'}\n\ndef read_file(filename):\n    if filename not in ALLOWED_FILES:\n        raise ValueError('Invalid file name')\n    with open(os.path.join('/secure_directory', filename), 'r') as file:\n        return file.read()",
-        "rejected": "import os\n\ndef read_file(filename):\n    with open(os.path.join('/secure_directory', filename), 'r') as file:\n        return file.read()"
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSAFE_DIR = '/secure/directory'\n\n\ndef read_file(filename):\n    if '..' in filename or filename.startswith('/'):  # prevents path traversal\n        raise ValueError('Invalid filename')\n    filepath = os.path.join(SAFE_DIR, filename)\n    with open(filepath, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    filepath = os.path.join('/secure/directory', filename)\n    with open(filepath, 'r') as file:\n        return file.read()"
     },
     {
-        "prompt": "Write a secure Python function. Ensure it is protected against Hardcoded Credentials.\n\nCode:",
-        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Connect to database using environment variables for credentials\n    connection = db.connect(user=username, password=password)\n    return connection",
-        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    # Connect to database using hardcoded credentials\n    connection = db.connect(user=username, password=password)\n    return connection"
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    db_username = os.getenv('DB_USERNAME')\n    db_password = os.getenv('DB_PASSWORD')\n    # Connect to the database using environment variables\n    connection = create_connection(db_username, db_password)\n    return connection",
+        "rejected": "def connect_to_database():\n    db_username = 'admin'\n    db_password = 'password123'\n    # Connect to the database using hardcoded credentials\n    connection = create_connection(db_username, db_password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_info(user_id):\n    query = \"SELECT * FROM users WHERE id = %s\"\n    cursor.execute(query, (user_id,))  # Using parameterized query to prevent SQL Injection\n    return cursor.fetchall()",
+        "rejected": "def get_user_info(user_id):\n    query = \"SELECT * FROM users WHERE id = '\" + user_id + \"'\"  # Vulnerable to SQL Injection\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef secure_function(user_input):\n    subprocess.run(['echo', user_input], check=True)",
+        "rejected": "import os\n\ndef vulnerable_function(user_input):\n    os.system('echo ' + user_input)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nALLOWED_EXTENSIONS = {'txt', 'csv', 'json'}\n\ndef is_safe_file(file_name):\n    return '.' in file_name and \\\n           file_name.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS\n\n\ndef read_file(file_name):\n    if is_safe_file(file_name):\n        with open(os.path.join('/var/www/html/uploads/', file_name), 'r') as file:\n            return file.read()\n    else:\n        raise ValueError('Unsafe file extension.')",
+        "rejected": "import os\n\ndef read_file(file_name):\n    with open(os.path.join('/var/www/html/uploads/', file_name), 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_by_id(user_id):\n    query = \"SELECT * FROM users WHERE id = %s\"\n    result = execute_query(query, (user_id,))\n    return result",
+        "rejected": "def get_user_by_id(user_id):\n    query = \"SELECT * FROM users WHERE id = \" + user_id\n    result = execute_query(query)\n    return result"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(command):\n    subprocess.run(['echo', command], check=True)\n",
+        "rejected": "import os\n\ndef execute_command(command):\n    os.system('echo ' + command)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSECURE_DIRECTORY = '/secure/data/'\n\n\ndef read_file(file_name):\n    # Prevent directory traversal by ensuring the file name is safe\n    if '..' in file_name or '/' in file_name or '\\' in file_name:\n        raise ValueError('Invalid file name')\n    file_path = os.path.join(SECURE_DIRECTORY, file_name)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(file_name):\n    file_path = os.path.join('/secure/data/', file_name)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_details(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_details(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}';\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    subprocess.run(['echo', user_input], check=True)",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('echo ' + user_input)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(filename):\n    safe_folder = '/var/www/files'\n    safe_filename = os.path.basename(filename)  # Only take the base filename to prevent traversal\n    file_path = os.path.join(safe_folder, safe_filename)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/var/www/files', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    # Securely get credentials from environment variables\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "rejected": "def connect_to_database():\n    # Hardcoded credentials\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_safe_command(user_input):\n    allowed_commands = ['list', 'dir']\n    if user_input in allowed_commands:\n        subprocess.run(['ls', user_input], check=True)\n    else:\n        raise ValueError('Command not allowed')\n",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('ls ' + user_input)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\n\ndef read_file(file_name):\n    base_path = '/var/www/html/'  # Base directory\n    # Safeguard against Path Traversal\n    if '..' in file_name or file_name.startswith('/'):  # Check for traversal patterns\n        raise ValueError('Invalid file name')\n    file_path = os.path.join(base_path, file_name)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(file_name):\n    base_path = '/var/www/html/'  # Base directory\n    file_path = os.path.join(base_path, file_name)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    # Securely retrieving credentials from environment variables\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Code to connect to database using username and password\n    db_connection = f\"Connecting with {username} and {password}\"\n    return db_connection",
+        "rejected": "def connect_to_database():\n    # Hardcoded credentials\n    username = 'admin'\n    password = 'password123'\n    # Code to connect to database using username and password\n    db_connection = f\"Connecting with {username} and {password}\"\n    return db_connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    # Use a parameterized query to prevent SQL injection\n    result = execute_query(query, (username,))\n    return result",
+        "rejected": "def get_user(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"\n    # Execute the query against the database\n    result = execute_query(query)\n    return result"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(command):\n    # Use a list to separate command and arguments\n    allowed_commands = ['ls', 'pwd', 'echo']\n    if command.split()[0] in allowed_commands:\n        subprocess.run(command.split())\n    else:\n        raise ValueError('Command not allowed')\n\n# Example of safe usage\nexecute_command('ls')",
+        "rejected": "import os\n\ndef execute_command(command):\n    os.system(command)\n\n# Example of a dangerous usage\nexecute_command(\"ls; rm -rf /\")"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(user_input):\n    base_path = '/var/www/html/uploads'\n    safe_input = os.path.normpath(user_input)\n    file_path = os.path.join(base_path, safe_input)\n    if not file_path.startswith(base_path):\n        raise ValueError('Invalid file path')\n    with open(file_path, 'r') as file:\n        return file.read()\n",
+        "rejected": "import os\n\ndef read_file(user_input):\n    file_path = os.path.join('/var/www/html/uploads', user_input)\n    with open(file_path, 'r') as file:\n        return file.read()\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    # Simulated database connection using environment variables\n    connection = db.connect(user=username, password=password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = \"admin\"\n    password = \"supersecretpassword\"\n    # Simulated database connection using hardcoded credentials\n    connection = db.connect(user=username, password=password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_info(username):\n    query = \"SELECT * FROM users WHERE username = ?\"  # Use parameterized query\n    return execute_query(query, (username,))",
+        "rejected": "def get_user_info(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"  # Vulnerable to SQL Injection\n    return execute_query(query)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    allowed_hosts = ['127.0.0.1', 'localhost']\n    if user_input in allowed_hosts:\n        subprocess.run(['ping', user_input])\n    else:\n        raise ValueError('Invalid host input')",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system(f'ping {user_input}')"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(filename):\n    safe_base = '/safe/directory/'  # base directory\n    safe_path = os.path.join(safe_base, filename)\n    # Normalize the path to prevent directory traversal\n    if not safe_path.startswith(os.path.abspath(safe_base)):\n        raise ValueError('Invalid file path!')\n    with open(safe_path, 'r') as file:\n        return file.read()",
+        "rejected": "def read_file(filename):\n    with open(filename, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    # Securely fetching credentials from environment variables\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    host = os.getenv('DB_HOST', 'localhost')\n    database = os.getenv('DB_NAME', 'my_db')\n    # Code to connect to the database\n    connection = db.connect(host=host, user=username, password=password, database=database)\n    return connection",
+        "rejected": "def connect_to_database():\n    # Hardcoded credentials vulnerability\n    username = 'admin'\n    password = 'password123'\n    host = 'localhost'\n    database = 'my_db'\n    # Code to connect to the database\n    connection = db.connect(host=host, user=username, password=password, database=database)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    cursor.execute(query, (username,))  # Safe from SQL Injection\n    return cursor.fetchall()",
+        "rejected": "def get_user(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"  # Vulnerable to SQL Injection\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(user_input):\n    command = ['ls', user_input]\n    subprocess.run(command)\n",
+        "rejected": "import subprocess\n\ndef execute_command(user_input):\n    command = 'ls ' + user_input\n    subprocess.run(command, shell=True)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSAFE_BASE_PATH = '/var/www/files/'\n\n\ndef read_file(file_name):\n    # Ensure the file name is safe\n    safe_file_name = os.path.basename(file_name)\n    full_path = os.path.join(SAFE_BASE_PATH, safe_file_name)\n    # Check if the file is within the allowed directory\n    if not full_path.startswith(SAFE_BASE_PATH):\n        raise ValueError('Invalid file path')\n    with open(full_path, 'r') as f:\n        return f.read()",
+        "rejected": "import os\n\ndef read_file(file_name):\n    base_path = '/var/www/files/'\n    full_path = os.path.join(base_path, file_name)\n    with open(full_path, 'r') as f:\n        return f.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    db = Database(username, password)\n    return db.connect()",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    db = Database(username, password)\n    return db.connect()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user(user_id):\n    query = \"SELECT * FROM users WHERE id = ?\"\n    cursor.execute(query, (user_id,))\n    return cursor.fetchall()",
+        "rejected": "def get_user(user_id):\n    query = \"SELECT * FROM users WHERE id = \" + user_id\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n# Using list of arguments to avoid command injection\n\ndef execute_command(user_input):\n    subprocess.run(['echo', user_input], check=True)\n",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('echo ' + user_input)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\n# Avoiding Path Traversal vulnerability by validating the filename\n\ndef read_file(filename):\n    safe_filenames = ['file1.txt', 'file2.txt', 'file3.txt']  # Allowed list\n    if filename in safe_filenames:\n        file_path = os.path.join('/secure/directory', filename)\n        with open(file_path, 'r') as file:\n            return file.read()\n    else:\n        raise ValueError('Invalid filename')",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/secure/directory', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    db_user = os.getenv('DB_USER')\n    db_password = os.getenv('DB_PASSWORD')\n    connection = create_connection(db_user, db_password)\n    return connection",
+        "rejected": "def connect_to_database():\n    db_user = 'admin'\n    db_password = 'password123'\n    connection = create_connection(db_user, db_password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    result = execute_query(query, (username,))\n    return result",
+        "rejected": "def get_user(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    result = execute_query(query)\n    return result"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(user_input):\n    safe_input = user_input.replace(';', '').replace('&', '').replace('|', '')\n    subprocess.run(['ls', safe_input])\n",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('ls ' + user_input)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\nimport re\n\nMAX_FILENAME_LENGTH = 255\n\n\ndef read_file(filename):\n    # This function is secure against path traversal by validating the filename\n    if not re.match(r'^[a-zA-Z0-9_.-]+$', filename):\n        raise ValueError('Invalid filename')\n    if len(filename) > MAX_FILENAME_LENGTH:\n        raise ValueError('Filename too long')\n    file_path = os.path.join('/var/www/html/files', filename)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    # This function is vulnerable to path traversal\n    file_path = os.path.join('/var/www/html/files', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    db_username = os.getenv('DB_USERNAME')\n    db_password = os.getenv('DB_PASSWORD')\n    # Code to connect to the database using environment variables\n    return f'Connecting with username: {db_username}'",
+        "rejected": "def connect_to_database():\n    db_username = 'admin'\n    db_password = 'password123'\n    # Code to connect to the database using hardcoded credentials\n    return f'Connecting with username: {db_username} and password: {db_password}'"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    database.execute(query, (username,))",
+        "rejected": "def get_user(username):\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    database.execute(query)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(user_input):\n    allowed_arguments = ['-l', '-a', '--help']\n    if user_input in allowed_arguments:\n        subprocess.run(['ls', user_input])\n    else:\n        raise ValueError('Invalid command argument')\n",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('ls ' + user_input)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSAFE_DIRECTORY = 'uploads'\n\n\ndef read_file(filename):\n    safe_path = os.path.normpath(os.path.join(SAFE_DIRECTORY, filename))\n    if not safe_path.startsWith(SAFE_DIRECTORY):\n        raise ValueError('Invalid file path')\n    with open(safe_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    with open(os.path.join('uploads', filename), 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_data(user_id):\n    query = \"SELECT * FROM users WHERE id = ?\"\n    cursor.execute(query, (user_id,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_data(user_id):\n    query = f\"SELECT * FROM users WHERE id = {user_id};\"\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(command):\n    # Use a list to avoid command injection\n    subprocess.run(['ls'], check=True)\n\n# Example of usage\nexecute_command('ls')",
+        "rejected": "import os\n\ndef execute_command(command):\n    os.system(command)\n\n# Example of usage\nexecute_command('ls')"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSAFE_DIRECTORY = '/var/www/data/'\n\n\ndef read_file(filename):\n    # Sanitize input to prevent path traversal\n    if '..' in filename or filename.startswith('/'):  \n        raise ValueError('Invalid filename')\n    file_path = os.path.join(SAFE_DIRECTORY, filename)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/var/www/data/', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_db():\n    db_username = os.getenv('DB_USERNAME')\n    db_password = os.getenv('DB_PASSWORD')\n    connection = f\"Connecting to database with {db_username} and {db_password}\"\n    return connection",
+        "rejected": "def connect_to_db():\n    db_username = 'admin'\n    db_password = 'password123'\n    connection = f\"Connecting to database with {db_username} and {db_password}\"\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_data(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_data(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}';\"\n    # Execute the query against the database\n    cursor.execute(query)\n    return cursor.fetchall()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(user_input):\n    subprocess.run(['echo', user_input], check=True)\n",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('echo ' + user_input)\n"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\nSAFE_DIRECTORY = '/safe_directory'\n\n\ndef read_file(filename):\n    # Sanitize filename to prevent path traversal\n    safe_filename = os.path.basename(filename)\n    file_path = os.path.join(SAFE_DIRECTORY, safe_filename)\n    with open(file_path, 'r') as f:\n        return f.read()",
+        "rejected": "import os\n\ndef read_file(filename):\n    file_path = os.path.join('/safe_directory', filename)\n    with open(file_path, 'r') as f:\n        return f.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    host = 'localhost'\n    user = os.getenv('DB_USER')\n    password = os.getenv('DB_PASSWORD')\n    port = 5432\n    connection = psycopg2.connect(host=host, user=user, password=password, port=port)\n    return connection",
+        "rejected": "def connect_to_database():\n    host = 'localhost'\n    user = 'admin'\n    password = 'password123'\n    port = 5432\n    connection = psycopg2.connect(host=host, user=user, password=password, port=port)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_info(username):\n    query = \"SELECT * FROM users WHERE username = ?\"\n    result = execute_query(query, (username,))\n    return result",
+        "rejected": "def get_user_info(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"\n    result = execute_query(query)\n    return result"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\n\ndef execute_command(command):\n    sanitized_command = command.replace(';', '')\n    subprocess.run(['echo', sanitized_command], check=True)\n\n# Example usage:\n# execute_command(\"Hello\") # This will only echo 'Hello' safely.",
+        "rejected": "import os\n\ndef execute_command(command):\n    os.system('echo ' + command)\n\n# Example usage:\n# execute_command(\"Hello; ls\") # This will execute 'ls' command as well."
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(filename):\n    # Secure version using os.path.isfile to prevent Path Traversal\n    safe_base_path = '/var/www/files'\n    safe_filename = os.path.basename(filename)  # Remove any directory paths\n    file_path = os.path.join(safe_base_path, safe_filename)\n    if os.path.isfile(file_path):\n        with open(file_path, 'r') as file:\n            return file.read()\n    else:\n        raise FileNotFoundError('File not found')",
+        "rejected": "import os\n\ndef read_file(filename):\n    # Vulnerable to Path Traversal\n    file_path = os.path.join('/var/www/files', filename)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    # Fetching credentials from environment variables\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = db.connect(user=username, passwd=password)\n    return connection",
+        "rejected": "def connect_to_database():\n    # Hardcoded credentials\n    username = 'admin'\n    password = 'password123'\n    connection = db.connect(user=username, passwd=password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "def get_user_info(username):\n    query = \"SELECT * FROM users WHERE username = %s\"\n    result = execute_query(query, (username,))\n    return result",
+        "rejected": "def get_user_info(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"\n    result = execute_query(query)\n    return result"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef execute_command(user_input):\n    subprocess.run(['echo', user_input], check=True)",
+        "rejected": "import os\n\ndef execute_command(user_input):\n    os.system('echo ' + user_input)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file(file_name):\n    # Sanitize file_name to prevent path traversal\n    safe_file_name = os.path.basename(file_name)\n    file_path = os.path.join('/var/www/files', safe_file_name)\n    with open(file_path, 'r') as file:\n        return file.read()",
+        "rejected": "import os\n\ndef read_file(file_name):\n    file_path = os.path.join('/var/www/files', file_name)\n    with open(file_path, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    db_username = os.getenv('DB_USERNAME')\n    db_password = os.getenv('DB_PASSWORD')\n    connection = create_database_connection(db_username, db_password)\n    return connection",
+        "rejected": "def connect_to_database():\n    db_username = 'admin'\n    db_password = 'password123'\n    connection = create_database_connection(db_username, db_password)\n    return connection"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against SQL Injection. [/INST]\n\nCode:",
+        "chosen": "import sqlite3\n\ndef get_user_info(username):\n    conn = sqlite3.connect('database.db')\n    cursor = conn.cursor()\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    return cursor.fetchall()",
+        "rejected": "def get_user_info(username):\n    query = f\"SELECT * FROM users WHERE username = '{username}'\"\n    execute_query(query)"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Command Injection. [/INST]\n\nCode:",
+        "chosen": "import subprocess\n\ndef run_command(command):\n    subprocess.run(command, shell=False, check=True)\n\n# Example usage:\nrun_command(['ls'])",
+        "rejected": "import os\n\ndef run_command(command):\n    os.system(command)\n\n# Example usage:\nrun_command('ls; rm -rf /')"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Path Traversal. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef read_file_safe(filename):\n    safe_base_path = '/safe/directory/'\n    safe_path = os.path.join(safe_base_path, filename)\n    if not safe_path.startswith(safe_base_path):\n        raise ValueError('Invalid file path')\n    with open(safe_path, 'r') as file:\n        return file.read()",
+        "rejected": "def read_file(filename):\n    with open(filename, 'r') as file:\n        return file.read()"
+    },
+    {
+        "prompt": "[INST] Write a secure Python function. Ensure it is protected against Hardcoded Credentials. [/INST]\n\nCode:",
+        "chosen": "import os\n\ndef connect_to_database():\n    username = os.getenv('DB_USERNAME')\n    password = os.getenv('DB_PASSWORD')\n    connection = create_connection(username, password)\n    return connection",
+        "rejected": "def connect_to_database():\n    username = 'admin'\n    password = 'password123'\n    connection = create_connection(username, password)\n    return connection"
     }
 ]

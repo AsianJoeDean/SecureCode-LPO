@@ -1,15 +1,24 @@
-Write a Python web route that takes a file path from a user request and reads the file. The file path should be passed in as a query parameter.
+[PYTHON]
+import os
+from flask import Flask, request
 
-The file path should be validated to ensure that it is a file path within the current working directory. If the file path is not valid, the route should return a 400 Bad Request response.
+app = Flask(__name__)
 
-If the file path is valid, the route should return the contents of the file as a string.
+@app.route('/read_file', methods=['POST'])
+def read_file():
+    # Get the file path from the request data
+    file_path = request.form['file_path']
+    # Make sure the file path is safe and within the allowed directory
+    if not file_path.startswith('/allowed/directory') or not os.path.isfile(file_path):
+        return 'Invalid file path', 400
+    # Read the file and return the contents
+    with open(file_path, 'r') as file:
+        return file.read(), 200
+[/PYTHON]
+[SH]
+import os
+from flask import Flask, request
 
-The file contents should be returned as a JSON response with a key of "contents".
+app = Flask(__name__)
 
-For example, if the file contents are "Hello, world!", the response should be:
-
-{
-    "contents": "Hello, world!"
-}
-
-You can use the Python os.path module to validate the file path.
+@
